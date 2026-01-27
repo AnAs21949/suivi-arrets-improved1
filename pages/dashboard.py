@@ -432,13 +432,13 @@ def render_dashboard_page():
     
     # === TAB 4: PARETO ===
     with tab4:
-        st.markdown("### 🎯 Analyse de Pareto - Causes d'arrêt")
-        st.info("""
-        **Comment lire ce graphique :**
-        - Les **barres** montrent la durée de chaque cause d'arrêt (triées par impact décroissant)
-        - La **courbe rouge** montre le pourcentage cumulé
-        - Les causes **avant la ligne 80%** causent la majorité des pertes → priorités d'action
-        """)
+        # st.markdown("### 🎯 Analyse de Pareto - Causes d'arrêt")
+        # st.info("""
+        # **Comment lire ce graphique :**
+        # - Les **barres** montrent la durée de chaque cause d'arrêt (triées par impact décroissant)
+        # - La **courbe rouge** montre le pourcentage cumulé
+        # - Les causes **avant la ligne 80%** causent la majorité des pertes → priorités d'action
+        # """)
         
         # Selector for grouping level
         col1, col2 = st.columns([3, 1])
