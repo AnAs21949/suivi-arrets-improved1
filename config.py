@@ -59,6 +59,17 @@ SERVICE_COLORS = {
     "Achat": "#06B6D4",
     "Qualité": "#6366F1",
     "Visite": "#14B8A6",
+    
+    "Maintenance": "#FF6B35",
+    "Technique": "#3B82F6",
+    "Supply": "#10B981",
+    "It": "#F59E0B",           # ✅ AJOUTÉ !
+    "Production": "#8B5CF6",
+    "Formation": "#EC4899",
+    "Organisation": "#EF4444",
+    "Achat": "#06B6D4",
+    "Qualité": "#6366F1",
+    "Visite": "#14B8A6",
 }
 
 # Équipes (shifts)

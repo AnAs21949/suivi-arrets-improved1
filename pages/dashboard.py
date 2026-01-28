@@ -432,14 +432,6 @@ def render_dashboard_page():
     
     # === TAB 4: PARETO ===
     with tab4:
-        # st.markdown("### 🎯 Analyse de Pareto - Causes d'arrêt")
-        # st.info("""
-        # **Comment lire ce graphique :**
-        # - Les **barres** montrent la durée de chaque cause d'arrêt (triées par impact décroissant)
-        # - La **courbe rouge** montre le pourcentage cumulé
-        # - Les causes **avant la ligne 80%** causent la majorité des pertes → priorités d'action
-        # """)
-        
         # Selector for grouping level
         col1, col2 = st.columns([3, 1])
         with col1:
@@ -471,29 +463,45 @@ def render_dashboard_page():
             colors_pareto = [SERVICE_COLORS.get(cat, '#718096') for cat in pareto_data['Catégorie']]
             
         else:
-            # NEW: Detailed version - group by description
-            df_pareto = df[df['description'].notna()].copy()
+            # NEW: Detailed version - group by sous_famille (all services combined)
+            df_pareto = df[df['sous_famille'].notna()].copy()
             
-            # Truncate long descriptions for display
-            df_pareto['description_short'] = df_pareto['description'].apply(
-                lambda x: (x[:60] + '...') if len(str(x)) > 60 else str(x)
-            )
-            
-            # Calculate Pareto by description
-            pareto_data = df_pareto.groupby(['description_short', 'service']).agg({
+            # Group by sous_famille only (combine all services)
+            pareto_data = df_pareto.groupby('sous_famille').agg({
                 'duree_heures': 'sum'
             }).reset_index()
-            pareto_data.columns = ['Catégorie', 'Service', 'Heures']
+            pareto_data.columns = ['Catégorie', 'Heures']
             pareto_data = pareto_data.sort_values('Heures', ascending=False).head(max_items)
             
-            # Colors by service (for each cause)
-            colors_pareto = [SERVICE_COLORS.get(svc, '#718096') for svc in pareto_data['Service']]
+            # Find the main service for each cause (for coloring and display)
+            service_mapping = {}
+            for cat in pareto_data['Catégorie']:
+                main_service = df_pareto[df_pareto['sous_famille'] == cat].groupby('service')['duree_heures'].sum().idxmax()
+                service_mapping[cat] = main_service
+            
+            # Add Service column for display in table
+            pareto_data['Service'] = pareto_data['Catégorie'].map(service_mapping)
+            
+            # Colors by main service
+            colors_pareto = [SERVICE_COLORS.get(service_mapping.get(cat, 'TECHNIQUE'), '#718096') 
+                            for cat in pareto_data['Catégorie']]
         
         # Calculate cumulative percentage
         total_hours = pareto_data['Heures'].sum()
         pareto_data['Cumul'] = pareto_data['Heures'].cumsum()
         pareto_data['Cumul_%'] = (pareto_data['Cumul'] / total_hours) * 100
         pareto_data['Pct_individuel'] = (pareto_data['Heures'] / total_hours) * 100
+        
+        # CREATE TEXT LABELS WITH SERVICE INFO (BEFORE creating the chart!)
+        if pareto_level == "Par cause détaillée":
+            # Show hours + service name
+            pareto_data['text_display'] = pareto_data.apply(
+                lambda row: f"{row['Heures']:.1f}h<br>({row['Service']})", 
+                axis=1
+            )
+        else:
+            # Show only hours
+            pareto_data['text_display'] = pareto_data['Heures'].round(1).astype(str) + 'h'
         
         # Create Pareto chart
         fig_pareto = go.Figure()
@@ -504,9 +512,9 @@ def render_dashboard_page():
             y=pareto_data['Heures'],
             name='Heures',
             marker_color=colors_pareto,
-            text=pareto_data['Heures'].round(1),
+            text=pareto_data['text_display'],
             textposition='outside',
-            textfont=dict(size=10),
+            textfont=dict(size=9),
             hovertemplate='<b>%{x}</b><br>Durée: %{y:.1f}h<br>%{customdata:.1f}% du total<extra></extra>',
             customdata=pareto_data['Pct_individuel']
         ))
@@ -568,6 +576,183 @@ def render_dashboard_page():
         )
         
         st.plotly_chart(fig_pareto, use_container_width=True)
+
+
+        # ========================================
+        # NOUVEAU : PARETO PAR SERVICE SPÉCIFIQUE
+        # ========================================
+        
+        st.markdown("---")
+        st.markdown("### 🔍 Analyse détaillée par service")
+        
+        # Dropdown pour sélectionner un service
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            # Liste des services disponibles qui ont des sous-familles
+            services_available = df[df['sous_famille'].notna()]['service'].unique()
+            services_sorted = sorted(services_available)
+            
+            selected_service = st.selectbox(
+                "Sélectionnez un service à analyser",
+                options=services_sorted,
+                key="service_pareto"
+            )
+        
+        with col2:
+            max_items_service = st.slider(
+                "Top N causes", 
+                5, 20, 10, 
+                key="top_n_service",
+                help="Nombre de causes à afficher pour ce service"
+            )
+        
+        # Filtrer les données pour le service sélectionné
+        df_service = df[(df['service'] == selected_service) & (df['sous_famille'].notna())].copy()
+        
+        if len(df_service) > 0:
+            # Calculer le Pareto pour ce service
+            pareto_service = df_service.groupby('sous_famille').agg({
+                'duree_heures': 'sum'
+            }).reset_index()
+            pareto_service.columns = ['Cause', 'Heures']
+            pareto_service = pareto_service.sort_values('Heures', ascending=False).head(max_items_service)
+            
+            # Calculs cumulatifs
+            total_hours_service = pareto_service['Heures'].sum()
+            pareto_service['Cumul'] = pareto_service['Heures'].cumsum()
+            pareto_service['Cumul_%'] = (pareto_service['Cumul'] / total_hours_service) * 100
+            pareto_service['Pct_individuel'] = (pareto_service['Heures'] / total_hours_service) * 100
+            
+            # Créer le texte d'affichage
+            pareto_service['text_display'] = pareto_service['Heures'].round(1).astype(str) + 'h'
+            
+            # Graphique
+            fig_service = go.Figure()
+            
+            # Barres (une seule couleur pour le service)
+            service_color = SERVICE_COLORS.get(selected_service, '#718096')
+            
+            fig_service.add_trace(go.Bar(
+                x=pareto_service['Cause'],
+                y=pareto_service['Heures'],
+                name='Heures',
+                marker_color=service_color,
+                text=pareto_service['text_display'],
+                textposition='outside',
+                textfont=dict(size=10),
+                hovertemplate='<b>%{x}</b><br>Durée: %{y:.1f}h<br>%{customdata:.1f}% du total<extra></extra>',
+                customdata=pareto_service['Pct_individuel']
+            ))
+            
+            # Ligne cumulative
+            fig_service.add_trace(go.Scatter(
+                x=pareto_service['Cause'],
+                y=pareto_service['Cumul_%'],
+                mode='lines+markers',
+                name='% Cumulé',
+                line=dict(color='#E53E3E', width=3),
+                marker=dict(size=10, color='#E53E3E', symbol='diamond'),
+                yaxis='y2',
+                hovertemplate='<b>%{x}</b><br>Cumulé: %{y:.1f}%<extra></extra>'
+            ))
+            
+            # Ligne 80%
+            fig_service.add_hline(
+                y=80, 
+                line_dash="dash", 
+                line_color="red",
+                line_width=2,
+                annotation_text="Seuil 80%",
+                annotation_position="right",
+                yref='y2'
+            )
+            
+            fig_service.update_layout(
+                title=f"<b>Pareto des causes - {selected_service}</b>",
+                xaxis_title="Causes d'arrêt",
+                yaxis=dict(
+                    title="Durée d'arrêt (heures)", 
+                    side='left',
+                    showgrid=True,
+                    gridcolor='rgba(0,0,0,0.1)'
+                ),
+                yaxis2=dict(
+                    title="Pourcentage cumulé (%)", 
+                    side='right', 
+                    overlaying='y',
+                    range=[0, 110],
+                    showgrid=False
+                ),
+                plot_bgcolor='white',
+                paper_bgcolor='white',
+                font=dict(family="Segoe UI, sans-serif"),
+                title_font_size=16,
+                legend=dict(
+                    orientation='h', 
+                    yanchor='bottom', 
+                    y=1.02,
+                    xanchor='center',
+                    x=0.5
+                ),
+                xaxis_tickangle=-45,
+                margin=dict(b=150, t=80, l=80, r=80),
+                height=500,
+                hovermode='x unified'
+            )
+            
+            st.plotly_chart(fig_service, use_container_width=True)
+            
+            # Tableau détaillé
+            col1, col2 = st.columns([2, 1])
+            
+            with col1:
+                st.markdown(f"#### 📋 Détail des causes - {selected_service}")
+                
+                display_service = pareto_service.copy()
+                display_service['% du total'] = display_service['Pct_individuel'].round(1).astype(str) + '%'
+                display_service['Cumul'] = display_service['Cumul_%'].round(1).astype(str) + '%'
+                display_service['Heures'] = display_service['Heures'].round(1).astype(str) + 'h'
+                
+                st.dataframe(
+                    display_service[['Cause', 'Heures', '% du total', 'Cumul']], 
+                    use_container_width=True, 
+                    hide_index=True,
+                    height=300
+                )
+            
+            with col2:
+                st.markdown("#### 📊 Stats")
+                
+                # Nombre de causes pour 80%
+                causes_80_service = (pareto_service['Cumul_%'] <= 80).sum()
+                total_causes_service = len(pareto_service)
+                
+                st.metric(
+                    label="Causes pour 80%",
+                    value=f"{causes_80_service} / {total_causes_service}",
+                    help=f"Focus sur ces {causes_80_service} causes pour maximiser l'impact"
+                )
+                
+                # Cause principale
+                if not pareto_service.empty:
+                    top_cause_service = pareto_service.iloc[0]
+                    st.metric(
+                        label="Cause #1",
+                        value=f"{top_cause_service['Heures']:.1f}h",
+                        delta=f"{top_cause_service['Pct_individuel']:.1f}%"
+                    )
+                
+                # Total pour ce service
+                total_service_hours = df_service['duree_heures'].sum()
+                st.metric(
+                    label="Total heures",
+                    value=f"{total_service_hours:.1f}h",
+                    help=f"Total des arrêts {selected_service}"
+                )
+        
+        else:
+            st.info(f"Aucune donnée de sous-famille disponible pour {selected_service}")
         
         # === STATISTICS AND TABLE ===
         col1, col2 = st.columns([2, 1])
@@ -595,46 +780,38 @@ def render_dashboard_page():
                 height=400
             )
         
-        with col2:
-            # Key statistics
-            st.markdown("#### 📊 Statistiques clés")
+        # with col2:
+        #     # Key statistics
+        #     st.markdown("#### 📊 Statistiques clés")
             
-            # Find how many causes represent 80%
-            causes_80 = (pareto_data['Cumul_%'] <= 80).sum()
-            total_causes = len(pareto_data)
+        #     # Find how many causes represent 80%
+        #     causes_80 = (pareto_data['Cumul_%'] <= 80).sum()
+        #     total_causes = len(pareto_data)
             
-            st.metric(
-                label="Causes pour 80% des pertes",
-                value=f"{causes_80} / {total_causes}",
-                delta=f"{(causes_80/total_causes*100):.0f}% des causes",
-                help="Principe de Pareto: peu de causes génèrent la majorité des pertes"
-            )
+        #     st.metric(
+        #         label="Causes pour 80% des pertes",
+        #         value=f"{causes_80} / {total_causes}",
+        #         delta=f"{(causes_80/total_causes*100):.0f}% des causes",
+        #         help="Principe de Pareto: peu de causes génèrent la majorité des pertes"
+        #     )
             
-            # Top cause
-            if not pareto_data.empty:
-                top_cause = pareto_data.iloc[0]
-                st.metric(
-                    label="Cause #1 la plus impactante",
-                    value=f"{top_cause['Heures']:.1f}h",
-                    delta=f"{top_cause['Pct_individuel']:.1f}% du total"
-                )
+        #     # Top cause
+        #     if not pareto_data.empty:
+        #         top_cause = pareto_data.iloc[0]
+        #         st.metric(
+        #             label="Cause #1 la plus impactante",
+        #             value=f"{top_cause['Heures']:.1f}h",
+        #             delta=f"{top_cause['Pct_individuel']:.1f}% du total"
+        #         )
                 
-                # Top 3 cumul
-                if len(pareto_data) >= 3:
-                    top3_pct = pareto_data.iloc[2]['Cumul_%']
-                    st.metric(
-                        label="Impact cumulé Top 3",
-                        value=f"{top3_pct:.1f}%",
-                        help="Les 3 premières causes cumulent ce % des pertes"
-                    )
-            
-            st.markdown("---")
-            st.markdown("""
-            <div style="background: #FFF5F5; padding: 1rem; border-radius: 8px; border-left: 4px solid #E53E3E;">
-            <b>💡 Action recommandée</b><br>
-            Concentrez vos efforts d'amélioration sur les causes avant le seuil 80% pour maximiser l'impact.
-            </div>
-            """, unsafe_allow_html=True)
+        #         # Top 3 cumul
+        #         if len(pareto_data) >= 3:
+        #             top3_pct = pareto_data.iloc[2]['Cumul_%']
+        #             st.metric(
+        #                 label="Impact cumulé Top 3",
+        #                 value=f"{top3_pct:.1f}%",
+        #                 help="Les 3 premières causes cumulent ce % des pertes"
+        #             )
     
     st.markdown("---")
     

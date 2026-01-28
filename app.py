@@ -22,7 +22,7 @@ if not DB_PATH.exists():
 # Page configuration
 st.set_page_config(
     page_title=APP_NAME,
-    page_icon="🏭",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -195,6 +195,9 @@ st.markdown("""
         color: white !important;
         font-size: 1.5rem;
         font-weight: 700;
+    }
+    [data-testid="stSidebarNav"] {
+        display: none;
     }
     
     .sidebar-stat-label {
