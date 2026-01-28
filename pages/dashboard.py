@@ -583,7 +583,7 @@ def render_dashboard_page():
         # ========================================
         
         st.markdown("---")
-        st.markdown("### 🔍 Analyse détaillée par service")
+        st.markdown("### Analyse détaillée par service")
         
         # Dropdown pour sélectionner un service
         col1, col2 = st.columns([2, 1])
@@ -707,7 +707,7 @@ def render_dashboard_page():
             col1, col2 = st.columns([2, 1])
             
             with col1:
-                st.markdown(f"#### 📋 Détail des causes - {selected_service}")
+                st.markdown(f"#### Détail des causes - {selected_service}")
                 
                 display_service = pareto_service.copy()
                 display_service['% du total'] = display_service['Pct_individuel'].round(1).astype(str) + '%'
@@ -721,35 +721,35 @@ def render_dashboard_page():
                     height=300
                 )
             
-            with col2:
-                st.markdown("#### 📊 Stats")
+            # with col2:
+            #     st.markdown("#### 📊 Stats")
                 
-                # Nombre de causes pour 80%
-                causes_80_service = (pareto_service['Cumul_%'] <= 80).sum()
-                total_causes_service = len(pareto_service)
+            #     # Nombre de causes pour 80%
+            #     causes_80_service = (pareto_service['Cumul_%'] <= 80).sum()
+            #     total_causes_service = len(pareto_service)
                 
-                st.metric(
-                    label="Causes pour 80%",
-                    value=f"{causes_80_service} / {total_causes_service}",
-                    help=f"Focus sur ces {causes_80_service} causes pour maximiser l'impact"
-                )
+            #     st.metric(
+            #         label="Causes pour 80%",
+            #         value=f"{causes_80_service} / {total_causes_service}",
+            #         help=f"Focus sur ces {causes_80_service} causes pour maximiser l'impact"
+            #     )
                 
-                # Cause principale
-                if not pareto_service.empty:
-                    top_cause_service = pareto_service.iloc[0]
-                    st.metric(
-                        label="Cause #1",
-                        value=f"{top_cause_service['Heures']:.1f}h",
-                        delta=f"{top_cause_service['Pct_individuel']:.1f}%"
-                    )
+            #     # Cause principale
+            #     if not pareto_service.empty:
+            #         top_cause_service = pareto_service.iloc[0]
+            #         st.metric(
+            #             label="Cause #1",
+            #             value=f"{top_cause_service['Heures']:.1f}h",
+            #             delta=f"{top_cause_service['Pct_individuel']:.1f}%"
+            #         )
                 
-                # Total pour ce service
-                total_service_hours = df_service['duree_heures'].sum()
-                st.metric(
-                    label="Total heures",
-                    value=f"{total_service_hours:.1f}h",
-                    help=f"Total des arrêts {selected_service}"
-                )
+            #     # Total pour ce service
+            #     total_service_hours = df_service['duree_heures'].sum()
+            #     st.metric(
+            #         label="Total heures",
+            #         value=f"{total_service_hours:.1f}h",
+            #         help=f"Total des arrêts {selected_service}"
+            #     )
         
         else:
             st.info(f"Aucune donnée de sous-famille disponible pour {selected_service}")
@@ -758,7 +758,7 @@ def render_dashboard_page():
         col1, col2 = st.columns([2, 1])
         
         with col1:
-            st.markdown("#### 🔝 Détail des causes prioritaires")
+            st.markdown("#### Détail des causes prioritaires")
             
             # Prepare display table
             display_pareto = pareto_data.copy()

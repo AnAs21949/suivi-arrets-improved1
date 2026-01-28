@@ -14,7 +14,7 @@ from core.validators import validate_matrice_entry
 def render_admin_page():
     """Render the administration page."""
     
-    st.markdown("## ⚙️ Administration")
+    st.markdown("## Administration")
     st.markdown("Gérez les données de référence et la configuration du système.")
     st.markdown("---")
     

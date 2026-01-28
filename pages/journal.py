@@ -13,7 +13,7 @@ from core.calculations import calculate_duration, calculate_impact, get_iso_week
 def render_journal_page():
     """Render the journal (list view) page."""
     
-    st.markdown("## 📋 Historique des arrêts")
+    st.markdown("## Historique des arrêts")
     st.markdown("*Consultez et recherchez tous les arrêts enregistrés*")
     st.markdown("---")
     

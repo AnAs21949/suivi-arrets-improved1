@@ -33,7 +33,7 @@ def get_clients_for_site(site: str) -> list:
 def render_saisie_page():
     """Render the data entry page."""
     
-    st.markdown("## ➕ Nouvel Arrêt Production")
+    st.markdown("## Nouvel Arrêt Production")
     st.markdown("*Saisissez les détails de l'arrêt de production*")
     st.markdown("---")
     
