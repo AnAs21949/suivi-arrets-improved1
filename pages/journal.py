@@ -201,7 +201,7 @@ def render_journal_page():
     st.markdown("---")
     
     # === EDIT/DELETE SECTION ===
-    st.markdown("### ✏️ Actions")
+    st.markdown("### Actions")
     
     col1, col2 = st.columns(2)
     
@@ -241,7 +241,7 @@ def render_journal_page():
     
     # === EXPORT SECTION ===
     st.markdown("---")
-    st.markdown("### 📥 Export")
+    st.markdown("### Export")
     
     col1, col2, col3 = st.columns(3)
     

@@ -126,7 +126,7 @@ def render_matrice_tab():
     st.markdown("---")
     
     # Edit/Delete matrix entries
-    st.markdown("#### ✏️ Modifier/Supprimer")
+    st.markdown("#### Modifier/Supprimer")
     
     if matrice:
         matrix_options = {f"{m['id']}: {m['site']}/{m['client']}/{m['nbr_equipes']}": m['id'] for m in matrice}
