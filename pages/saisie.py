@@ -106,7 +106,7 @@ def render_saisie_page():
         with col3:
             heure_fin = st.time_input(
                 "Heure fin *",
-                value=time(12, 0),
+                value=time(10, 0),
                 help="Heure de fin de l'arrêt"
             )
         
