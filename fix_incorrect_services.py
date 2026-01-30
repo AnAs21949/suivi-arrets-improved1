@@ -6,7 +6,7 @@ import sqlite3
 import pandas as pd
 
 # Chemins
-EXCEL_FILE = "Suivi des arrêts production Berrechid 27-01-2026.xlsx"
+EXCEL_FILE = "Suivi des arrêts production Berrechid 30-01-2026.xlsx"
 DB_FILE = "db/arrets.db"
 
 def fix_services_robust():
