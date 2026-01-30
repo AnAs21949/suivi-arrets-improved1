@@ -9,8 +9,8 @@ import sqlite3
 import sys
 from pathlib import Path
 
-# Database path
-DB_PATH = Path(__file__).parent / "db" / "arrets.db"
+# Database path - relative to project root, not to this file
+DB_PATH = Path(__file__).parent.parent / "db" / "arrets.db"
 
 def reimport_from_excel(excel_path):
     """Reimport all data from Excel file including sous_famille."""

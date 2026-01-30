@@ -6,7 +6,7 @@ import pandas as pd
 from datetime import datetime
 
 # Chemins
-EXCEL_FILE = "Suivi des arrêts production Berrechid 27-01-2026.xlsx"
+EXCEL_FILE = "Suivi des arrêts production Berrechid 30-01-2026.xlsx"
 DB_FILE = "db/arrets.db"
 
 def update_all_sous_familles():

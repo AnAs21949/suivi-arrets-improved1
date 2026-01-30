@@ -5,7 +5,7 @@ import sqlite3
 import pandas as pd
 
 DB_FILE = "db/arrets.db"
-EXCEL_FILE = "Suivi des arrêts production Berrechid 27-01-2026.xlsx"
+EXCEL_FILE = "Suivi des arrêts production Berrechid 30-01-2026.xlsx"
 
 def find_last_problematic_arret():
     """Trouve l'arrêt SUPPLY avec 'Arrêt énergie général'"""

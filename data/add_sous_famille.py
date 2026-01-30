@@ -8,7 +8,7 @@ from pathlib import Path
 # Chemins - utiliser des chemins absolus basés sur la racine du projet
 PROJECT_ROOT = Path(__file__).parent.parent
 DB_PATH = PROJECT_ROOT / 'db' / 'arrets.db'
-EXCEL_PATH = PROJECT_ROOT / 'Suivi des arrêts production Berrechid 27-01-2026.xlsx'
+EXCEL_PATH = PROJECT_ROOT / 'Suivi des arrêts production Berrechid 30-01-2026.xlsx'
 
 def add_sous_famille_column():
     """Ajoute la colonne sous_famille si elle n'existe pas"""
