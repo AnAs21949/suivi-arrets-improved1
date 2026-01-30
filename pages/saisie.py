@@ -117,7 +117,7 @@ def render_saisie_page():
         if overnight:
             st.info(f"**Durée calculée:** {duree:.2f} heures (arrêt traversant minuit)")
         else:
-            st.success(f"**Durée calculée:** {duree:.2f} heures")
+            st.success(f"**Durée calculé:** {duree:.2f} heures")
         
         st.markdown("---")
         
